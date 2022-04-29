@@ -9,7 +9,7 @@ app.use(cors());
 const axios = require('axios');
 
 const commentsByPostId = {};
-const eventBusEndpoint = 'http://localhost:4005/events'
+const eventBusEndpoint = 'http://event-bus-srv:4005/events'
 
 app.get('/posts/:id/comments', (req, res) => {
   const postId = req.params.id;
@@ -33,6 +33,8 @@ app.post('/posts/:id/comments', async (req, res) => {
       ...newComment, 
       postId
     }
+  }).catch(err => {
+    console.log('failed to emmit CommentCreated event', {err})
   })
 
   res.status(201).send(comments)
@@ -58,7 +60,7 @@ const handleCommentModeratedEvent = async (data) => {
   const comment = commentsByPostId[postId].find(comment => comment.id === id)
   comment.status = status;
 
-  await axios.post('http://localhost:4005/events', {
+  await axios.post(eventBusEndpoint, {
     type:'CommentUpdated', 
     data:{
       postId,
